@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"time"
 
 	"github.com/amartorelli/rvlt/pkg/database"
 	"github.com/amartorelli/rvlt/pkg/model"
+	"github.com/amartorelli/rvlt/pkg/utils"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
@@ -32,7 +32,8 @@ type DOBRequest struct {
 }
 
 var (
-	errRendering = errors.New("error rendering message")
+	errRendering           = errors.New("error rendering message")
+	errBirthdayInTheFuture = errors.New("birthday date is in the future")
 )
 
 // NewHelloWorldAPI creates a new instance of the HelloWorldAPI structure
@@ -69,7 +70,6 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	var r DOBResponse
 	vars := mux.Vars(req)
 
-	fmt.Printf("%+v", vars)
 	u, err := a.db.Get(vars["username"])
 	if err == database.ErrUserNotFound {
 		log.Error(err)
@@ -85,7 +85,7 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	msg, err := renderBirthdayMessage(u)
+	msg, err := renderBirthdayMessage(u, time.Now())
 	if err != nil {
 		log.Error(err)
 		r.Message = err.Error()
@@ -130,24 +130,25 @@ func (a *HelloWorldAPI) setBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func daysToBirthday(bd, now time.Time) int {
-	birthday := bd.AddDate(1, 0, 0)
-	return int(math.Round(birthday.Sub(now).Hours() / 24))
-}
-
-func renderBirthdayMessage(u model.User) (string, error) {
+func renderBirthdayMessage(u model.User, now time.Time) (string, error) {
 	var msg string
-	t, err := time.Parse("2006-01-02", u.DOB)
+	bd, err := time.Parse("2006-01-02", u.DOB)
 	if err != nil {
-		return msg, errRendering
+		return "", errRendering
 	}
 
-	now := time.Now()
-	yesterday := now.AddDate(0, 0, -1)
-	if t.After(yesterday) {
+	if bd.After(now) {
+		return "", errBirthdayInTheFuture
+	}
+
+	days, err := utils.DaysUntilBirthday(bd, now)
+	if err != nil {
+		return "", err
+	}
+
+	if days == 0 {
 		msg = fmt.Sprintf("Hello, %s! Happy birthday!", u.Username)
 	} else {
-		days := daysToBirthday(t, now)
 		msg = fmt.Sprintf("Hello, %s! Your birthday is in %d day(s)", u.Username, days)
 	}
 
