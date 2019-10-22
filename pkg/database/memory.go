@@ -9,7 +9,7 @@ type MemoryDatabase struct {
 
 // NewMemoryDatabase creates a new MemoryDatabase
 func NewMemoryDatabase() (*MemoryDatabase, error) {
-	return &MemoryDatabase{}, nil
+	return &MemoryDatabase{users: make(map[string]string)}, nil
 }
 
 // Store stores a user in memory
