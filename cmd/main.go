@@ -7,6 +7,9 @@ import (
 )
 
 func main() {
+	// TODO:
+	// read settings from env
+	// handle signals
 
 	db, err := database.NewDatabase("memory")
 	if err != nil {
@@ -17,5 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// TODO: start in a separate go routine
 	a.Start()
 }
