@@ -38,7 +38,7 @@ func TestGetBirthdayHandler(t *testing.T) {
 	}
 }
 
-func TestGSetBirthdayHandler(t *testing.T) {
+func TestSetBirthdayHandler(t *testing.T) {
 	// TODO
 }
 

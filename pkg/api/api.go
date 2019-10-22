@@ -106,6 +106,7 @@ func (a *HelloWorldAPI) setBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	// get and check DOB
 	err := json.NewDecoder(req.Body).Decode(&r)
 	if err != nil {
+		log.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
