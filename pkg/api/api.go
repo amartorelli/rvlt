@@ -2,6 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
+	"math"
 	"net/http"
 	"time"
 
@@ -28,6 +31,10 @@ type DOBRequest struct {
 	DOB string `json:"dateOfBirth"`
 }
 
+var (
+	errRendering = errors.New("error rendering message")
+)
+
 // NewHelloWorldAPI creates a new instance of the HelloWorldAPI structure
 func NewHelloWorldAPI(addr string, db database.Database) (*HelloWorldAPI, error) {
 	mux := mux.NewRouter()
@@ -38,15 +45,17 @@ func NewHelloWorldAPI(addr string, db database.Database) (*HelloWorldAPI, error)
 		WriteTimeout:   5 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-
 	return &HelloWorldAPI{server: s, mux: mux, db: db}, nil
+}
+
+func (a *HelloWorldAPI) initHandlers() {
+	a.mux.HandleFunc("/hello/{username}", a.getBirthdayHandler).Methods("GET")
+	a.mux.HandleFunc("/hello/{username}", a.setBirthdayHandler).Methods("PUT").HeadersRegexp("Content-Type", "application/json")
 }
 
 // Start starts the http server
 func (a *HelloWorldAPI) Start() error {
-	// init handlers
-	a.mux.HandleFunc("/hello/{username}", a.setBirthdayHandler).Methods("GET")
-	a.mux.HandleFunc("/hello/{username}", a.setBirthdayHandler).Methods("PUT")
+	a.initHandlers()
 
 	err := a.server.ListenAndServe()
 	if err != nil {
@@ -60,13 +69,16 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	var r DOBResponse
 	vars := mux.Vars(req)
 
+	fmt.Printf("%+v", vars)
 	u, err := a.db.Get(vars["username"])
 	if err == database.ErrUserNotFound {
+		log.Error(err)
 		r.Message = err.Error()
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(r)
 		return
 	} else if err != nil {
+		log.Error(err)
 		r.Message = err.Error()
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(r)
@@ -75,6 +87,7 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 
 	msg, err := renderBirthdayMessage(u)
 	if err != nil {
+		log.Error(err)
 		r.Message = err.Error()
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(r)
@@ -117,12 +130,26 @@ func (a *HelloWorldAPI) setBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func daysToBirthday(bd, now time.Time) int {
+	birthday := bd.AddDate(1, 0, 0)
+	return int(math.Round(birthday.Sub(now).Hours() / 24))
+}
+
 func renderBirthdayMessage(u model.User) (string, error) {
 	var msg string
-	// check it's not in the future
-	// today := time.Now()
-	// parse dob as time
-	// compare time, if < 24h -> it's today -> He;;o, <username>! Happy birthday!
-	// else it's another day -> He;;o, <username>! your birthday is in N days!
+	t, err := time.Parse("2006-01-02", u.DOB)
+	if err != nil {
+		return msg, errRendering
+	}
+
+	now := time.Now()
+	yesterday := now.AddDate(0, 0, -1)
+	if t.After(yesterday) {
+		msg = fmt.Sprintf("Hello, %s! Happy birthday!", u.Username)
+	} else {
+		days := daysToBirthday(t, now)
+		msg = fmt.Sprintf("Hello, %s! Your birthday is in %d day(s)", u.Username, days)
+	}
+
 	return msg, nil
 }
