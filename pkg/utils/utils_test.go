@@ -20,6 +20,7 @@ func TestDaysUntilBirthday(t *testing.T) {
 		msg string
 	}{
 		{"2006-04-02", "2016-04-02", 0, nil, "same day should return 0"},
+		{"2006-04-01", "2016-04-02", 364, nil, "if it was yesterday should give 364 days"},
 		{"2006-04-02", "2016-04-01", 1, nil, "one day difference should return 1"},
 		{"2006-04-05", "2016-04-01", 4, nil, "four day difference should return 4"},
 		{"2116-04-05", "2016-04-01", 0, errDateComp, "a birthday in the future should give an error"},

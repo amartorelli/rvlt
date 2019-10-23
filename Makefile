@@ -13,6 +13,8 @@ build-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_NAME) $(CMD_PATH)
 test:
 	$(GOTEST) -v ./...
+integration-tests:
+	./integration/run.sh
 clean:
 	rm -f $(BINARY_NAME)
 	rm -f $(BINARY_UNIX)

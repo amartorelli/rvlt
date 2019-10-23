@@ -40,5 +40,11 @@ func DaysUntilBirthday(bd, now time.Time) (int, error) {
 	hours := birthday.Sub(now).Hours()
 	days := int(hours / 24)
 
+	// if the birthday date is before today's we receive a negative number, add
+	// 365 to find the correct date
+	if days < 0 {
+		days = 365 + days
+	}
+
 	return days, nil
 }
