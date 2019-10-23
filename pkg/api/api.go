@@ -59,6 +59,7 @@ func (a *HelloWorldAPI) initHandlers() {
 func (a *HelloWorldAPI) Start() error {
 	a.initHandlers()
 
+	log.Info("starting API")
 	err := a.server.ListenAndServe()
 	if err != http.ErrServerClosed {
 		return err
