@@ -18,5 +18,7 @@ integration-tests:
 clean:
 	rm -f $(BINARY_NAME)
 	rm -f $(BINARY_UNIX)
-build-docker: build-linux
+build-docker:
+	make build-linux
 	docker build -t rvlt/helloworld:latest .
+	make clean
