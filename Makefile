@@ -20,5 +20,5 @@ clean:
 	rm -f $(BINARY_UNIX)
 build-docker:
 	make build-linux
-	docker build -t rvlt/helloworld:latest .
+	docker build -t gcr.io/rvlt/helloworld:latest .
 	make clean
