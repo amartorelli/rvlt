@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -59,9 +60,24 @@ func (a *HelloWorldAPI) Start() error {
 	a.initHandlers()
 
 	err := a.server.ListenAndServe()
+	if err != http.ErrServerClosed {
+		return err
+	}
+	return nil
+}
+
+// Stop stops the API server
+func (a *HelloWorldAPI) Stop() error {
+	err := a.server.Shutdown(context.Background())
 	if err != nil {
 		return err
 	}
+
+	err = a.db.Close()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

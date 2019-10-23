@@ -10,6 +10,7 @@ import (
 type Database interface {
 	Store(model.User) error
 	Get(string) (u model.User, err error)
+	Close() error
 }
 
 var (
@@ -26,7 +27,11 @@ func NewDatabase(dbType string) (Database, error) {
 		db, _ := NewMemoryDatabase()
 		return db, nil
 	case "postgres":
-		return nil, nil
+		db, err := NewPostgresDatabase()
+		if err != nil {
+			return nil, err
+		}
+		return db, nil
 	default:
 		return nil, ErrInvalidDatabaseType
 	}

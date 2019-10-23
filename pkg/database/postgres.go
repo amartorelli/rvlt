@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/amartorelli/rvlt/pkg/model"
@@ -33,16 +34,16 @@ type PostgresConf struct {
 	sslmode  string
 }
 
-func parsePostgresConfig(c map[string]string) (PostgresConf, error) {
+func parsePostgresConfig() (PostgresConf, error) {
 	pc := PostgresConf{}
 
 	host := "localhost"
-	if h, ok := c["host"]; ok {
+	if h := os.Getenv("POSTGRES_HOST"); h != "" {
 		host = h
 	}
 
 	port := 5432
-	if p, ok := c["port"]; ok {
+	if p := os.Getenv("POSTGRES_PORT"); p != "" {
 		cp, err := strconv.Atoi(p)
 		if err != nil {
 			return pc, errors.New("invalid port")
@@ -51,28 +52,28 @@ func parsePostgresConfig(c map[string]string) (PostgresConf, error) {
 	}
 
 	var user string
-	if u, ok := c["user"]; !ok {
+	if u := os.Getenv("POSTGRES_USER"); u != "" {
 		user = u
 	} else {
 		return pc, ErrInvalidConf
 	}
 
 	var pwd string
-	if pw, ok := c["password"]; ok {
+	if pw := os.Getenv("POSTGRES_PASSWORD"); pw != "" {
 		pwd = pw
 	} else {
 		return pc, ErrInvalidConf
 	}
 
 	var dbname string
-	if dbn, ok := c["password"]; ok {
+	if dbn := os.Getenv("POSTGRES_DB"); dbn != "" {
 		dbname = dbn
 	} else {
 		return pc, ErrInvalidConf
 	}
 
-	var sslmode string
-	if sslm, ok := c["sslmode"]; ok {
+	var sslmode string = "disable"
+	if sslm := os.Getenv("POSTGRES_SSLMODE"); sslm == "enable" || sslm == "disable" {
 		sslmode = sslm
 	} else {
 		return pc, ErrInvalidConf
@@ -89,10 +90,10 @@ func parsePostgresConfig(c map[string]string) (PostgresConf, error) {
 }
 
 // NewPostgresDatabase creates a new postgres connection
-func NewPostgresDatabase(opts map[string]string) (*PostgresDatabase, error) {
+func NewPostgresDatabase() (*PostgresDatabase, error) {
 	pdb := &PostgresDatabase{}
 
-	conf, err := parsePostgresConfig(opts)
+	conf, err := parsePostgresConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -172,4 +173,9 @@ func (d *PostgresDatabase) Get(user string) (u model.User, err error) {
 	}
 
 	return usr, nil
+}
+
+// Close closes the connection to the DB
+func (d *PostgresDatabase) Close() error {
+	return d.db.Close()
 }

@@ -31,3 +31,8 @@ func (d *MemoryDatabase) Get(user string) (u model.User, err error) {
 
 	return usr, nil
 }
+
+// Close does nothing for the memory database
+func (d *MemoryDatabase) Close() error {
+	return nil
+}
