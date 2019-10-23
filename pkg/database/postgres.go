@@ -5,15 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-)
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "your-password"
-	dbname   = "calhounio_demo"
-	sslmode  = "disable"
+	"github.com/amartorelli/rvlt/pkg/model"
 )
 
 var (
@@ -37,6 +30,7 @@ type PostgresConf struct {
 	user     string
 	password string
 	dbname   string
+	sslmode  string
 }
 
 func parsePostgresConfig(c map[string]string) (PostgresConf, error) {
@@ -77,11 +71,19 @@ func parsePostgresConfig(c map[string]string) (PostgresConf, error) {
 		return pc, ErrInvalidConf
 	}
 
+	var sslmode string
+	if sslm, ok := c["sslmode"]; ok {
+		sslmode = sslm
+	} else {
+		return pc, ErrInvalidConf
+	}
+
 	pc.host = host
 	pc.port = port
 	pc.user = user
 	pc.password = pwd
 	pc.dbname = dbname
+	pc.sslmode = sslmode
 
 	return pc, nil
 }
@@ -119,4 +121,55 @@ func NewPostgresDatabase(opts map[string]string) (*PostgresDatabase, error) {
 func (d *PostgresDatabase) Stop() error {
 	err := d.db.Close()
 	return err
+}
+
+var (
+	querySelectUser = `SELECT * FROM birthdays WHERE username = '$1'`
+	queryInsertUser = `INSERT INTO birthdays(username, birthday) VALUES('$1', '$2')`
+	queryUpdateUser = `UPDATE birthdays SET birthday = $1 WHERE username = '$2'`
+)
+
+// Store stores a user in memory
+func (d *PostgresDatabase) Store(u model.User) error {
+	_, err := d.Get(u.Username)
+	// if the user is not present we insert
+	if err == ErrUserNotFound {
+		_, err := d.db.Query(queryInsertUser, u.Username, u.DOB)
+		if err != nil {
+			return err
+		}
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	// if we got here, the user is already present and we should do an update
+	stmt, err := d.db.Prepare(queryUpdateUser)
+	_, err = stmt.Exec(queryUpdateUser, u.DOB, u.Username)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Get retrieves a user's birthday from memory
+func (d *PostgresDatabase) Get(user string) (u model.User, err error) {
+	usr := model.User{}
+
+	rows, err := d.db.Query(querySelectUser, user)
+	if err != nil {
+		return usr, err
+	}
+
+	if !rows.Next() {
+		return usr, ErrUserNotFound
+	}
+
+	err = rows.Scan(&usr.Username, &usr.DOB)
+	if err != nil {
+		return usr, err
+	}
+
+	return usr, nil
 }
