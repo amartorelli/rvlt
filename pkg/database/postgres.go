@@ -19,12 +19,15 @@ const (
 var (
 	// ErrInvalidPort is returned when the configuration provides an invalid port
 	ErrInvalidPort = errors.New("invalid port")
+	// ErrInvalidConf is returned when the configuration is missing some required fields
+	ErrInvalidConf = errors.New("invalid configuration")
 )
 
 // PostgresDatabase represents a postgres connection
 type PostgresDatabase struct {
-	conf PostgresConf
-	db   *sql.DB
+	conf    PostgresConf
+	connStr string
+	db      *sql.DB
 }
 
 // PostgresConf holds information about the postgres configuration
@@ -53,8 +56,32 @@ func parsePostgresConfig(c map[string]string) (PostgresConf, error) {
 		port = cp
 	}
 
+	var user string
+	if u, ok := c["user"]; !ok {
+		user = u
+	} else {
+		return pc, ErrInvalidConf
+	}
+
+	var pwd string
+	if pw, ok := c["password"]; ok {
+		pwd = pw
+	} else {
+		return pc, ErrInvalidConf
+	}
+
+	var dbname string
+	if dbn, ok := c["password"]; ok {
+		dbname = dbn
+	} else {
+		return pc, ErrInvalidConf
+	}
+
 	pc.host = host
 	pc.port = port
+	pc.user = user
+	pc.password = pwd
+	pc.dbname = dbname
 
 	return pc, nil
 }
@@ -63,24 +90,33 @@ func parsePostgresConfig(c map[string]string) (PostgresConf, error) {
 func NewPostgresDatabase(opts map[string]string) (*PostgresDatabase, error) {
 	pdb := &PostgresDatabase{}
 
-	parsePostgresConfig(opts)
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	conf, err := parsePostgresConfig(opts)
+	if err != nil {
+		return nil, err
+	}
+	pdb.conf = conf
+
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", conf.host, conf.port, conf.user, conf.password, conf.dbname)
+	pdb.connStr = psqlInfo
+
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
+
+	pdb.db = db
 
 	fmt.Println("Successfully connected!")
 	return pdb, nil
 }
 
 // Stop closes the database connection
-func Stop() {
-
+func (d *PostgresDatabase) Stop() error {
+	err := d.db.Close()
+	return err
 }
