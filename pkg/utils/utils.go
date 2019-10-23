@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"math"
 	"time"
 )
 
@@ -28,6 +27,9 @@ func DaysUntilBirthday(bd, now time.Time) (int, error) {
 		return 0, errDateComp
 	}
 
+	// we only take into account the days
+	now = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
 	var leapAdjustment int
 	// if the person was born on a leap year we celebrate on the 28th of Feb
 	if bd.Day() == 29 && bd.Month() == 02 && (!IsLeapYear(now.Year())) {
@@ -35,6 +37,8 @@ func DaysUntilBirthday(bd, now time.Time) (int, error) {
 	}
 
 	birthday := bd.AddDate(now.Year()-bd.Year(), 0, leapAdjustment)
+	hours := birthday.Sub(now).Hours()
+	days := int(hours / 24)
 
-	return int(math.Floor(birthday.Sub(now).Hours() / 24)), nil
+	return days, nil
 }

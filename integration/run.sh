@@ -6,13 +6,13 @@ echo "# USER NOT FOUND"
 curl http://localhost:8080/hello/john
 
 echo "# ADD USER"
-curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2016-02-02"}' 
+curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2016-02-02"}'
 
 echo "# USER FOUND"
 curl http://localhost:8080/hello/john
 
 echo "# UPDATE USER"
-curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2016-02-01"}' 
+curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2016-02-01"}'
 
 echo "# NEW BIRTHDAY"
 curl http://localhost:8080/hello/john
@@ -24,4 +24,4 @@ curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' 
 echo "# BIRTHDAY IS TODAY"
 curl http://localhost:8080/hello/john
 
-# docker-compose down
+docker-compose down

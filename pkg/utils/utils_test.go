@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+// getTimeFromString is a helper that ignores errors so that we can assign quickly multiple values to the test cases
+func getTimeFromString(t string) time.Time {
+	r, _ := time.Parse("2006-01-02", t)
+	return r
+}
+
 func TestDaysUntilBirthday(t *testing.T) {
 	tt := []struct {
 		bd  string

@@ -90,13 +90,11 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	u, err := a.db.Get(vars["username"])
 	if err == database.ErrUserNotFound {
 		log.Error(err)
-		r.Message = err.Error()
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(r)
 		return
 	} else if err != nil {
 		log.Error(err)
-		r.Message = err.Error()
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(r)
 		return
@@ -105,7 +103,6 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	msg, err := renderBirthdayMessage(u, time.Now())
 	if err != nil {
 		log.Error(err)
-		r.Message = err.Error()
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(r)
 		return
@@ -152,10 +149,12 @@ func renderBirthdayMessage(u model.User, now time.Time) (string, error) {
 	var msg string
 	bd, err := time.Parse("2006-01-02", u.DOB)
 	if err != nil {
+		log.Debugf("+%v", bd)
 		return "", errRendering
 	}
 
 	if bd.After(now) {
+		log.Debugf("+%v", bd)
 		return "", errBirthdayInTheFuture
 	}
 
@@ -164,6 +163,8 @@ func renderBirthdayMessage(u model.User, now time.Time) (string, error) {
 		return "", err
 	}
 
+	fmt.Printf("%+v/%+v\n", bd, now)
+	fmt.Println(days)
 	if days == 0 {
 		msg = fmt.Sprintf("Hello, %s! Happy birthday!", u.Username)
 	} else {

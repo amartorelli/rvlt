@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/amartorelli/rvlt/pkg/model"
 	// used to psql
@@ -43,7 +44,6 @@ type PostgresConf struct {
 }
 
 func parsePostgresConfig() (PostgresConf, error) {
-	fmt.Println(os.Environ())
 	pc := PostgresConf{}
 
 	host := "localhost"
@@ -132,17 +132,21 @@ func (d *PostgresDatabase) Stop() error {
 }
 
 var (
-	querySelectUser = `SELECT * FROM birthdays WHERE username = '$1'`
-	queryInsertUser = `INSERT INTO birthdays(username, birthday) VALUES('$1', '$2')`
-	queryUpdateUser = `UPDATE birthdays SET birthday = $1 WHERE username = '$2'`
+	querySelectUser = "SELECT * FROM birthdays WHERE username = $1"
+	queryInsertUser = "INSERT INTO birthdays(username, birthday) VALUES($1, $2)"
+	queryUpdateUser = "UPDATE birthdays SET birthday = $1 WHERE username = $2"
 )
 
 // Store stores a user in postgres
 func (d *PostgresDatabase) Store(u model.User) error {
-	_, err := d.Get(u.Username)
+	dob, err := time.Parse("2006-01-02", u.DOB)
+	if err != nil {
+		return err
+	}
+	_, err = d.Get(u.Username)
 	// if the user is not present we insert
 	if err == ErrUserNotFound {
-		_, err := d.db.Query(queryInsertUser, u.Username, u.DOB)
+		_, err := d.db.Query(queryInsertUser, u.Username, dob)
 		if err != nil {
 			return err
 		}
@@ -153,7 +157,7 @@ func (d *PostgresDatabase) Store(u model.User) error {
 
 	// if we got here, the user is already present and we should do an update
 	stmt, err := d.db.Prepare(queryUpdateUser)
-	_, err = stmt.Exec(queryUpdateUser, u.DOB, u.Username)
+	_, err = stmt.Exec(dob, u.Username)
 	if err != nil {
 		return err
 	}
@@ -174,10 +178,12 @@ func (d *PostgresDatabase) Get(user string) (u model.User, err error) {
 		return usr, ErrUserNotFound
 	}
 
-	err = rows.Scan(&usr.Username, &usr.DOB)
+	var dob time.Time
+	err = rows.Scan(&usr.Username, &dob)
 	if err != nil {
 		return usr, err
 	}
+	usr.DOB = dob.Format("2006-01-02")
 
 	return usr, nil
 }
