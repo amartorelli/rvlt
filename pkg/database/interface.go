@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/amartorelli/rvlt/pkg/model"
+	log "github.com/sirupsen/logrus"
 )
 
 // Database is the database interface
@@ -22,6 +23,7 @@ var (
 
 // NewDatabase returns a new database depending on the type
 func NewDatabase(dbType string) (Database, error) {
+	log.Infof("creating new database of type %s", dbType)
 	switch dbType {
 	case "memory":
 		db, _ := NewMemoryDatabase()

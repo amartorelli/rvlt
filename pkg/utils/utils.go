@@ -36,5 +36,5 @@ func DaysUntilBirthday(bd, now time.Time) (int, error) {
 
 	birthday := bd.AddDate(now.Year()-bd.Year(), 0, leapAdjustment)
 
-	return int(math.Round(birthday.Sub(now).Hours() / 24)), nil
+	return int(math.Floor(birthday.Sub(now).Hours() / 24)), nil
 }

@@ -8,13 +8,21 @@ import (
 	"strconv"
 
 	"github.com/amartorelli/rvlt/pkg/model"
+	// used to psql
+	_ "github.com/lib/pq"
 )
 
 var (
 	// ErrInvalidPort is returned when the configuration provides an invalid port
 	ErrInvalidPort = errors.New("invalid port")
-	// ErrInvalidConf is returned when the configuration is missing some required fields
-	ErrInvalidConf = errors.New("invalid configuration")
+	// ErrInvalidUser is returned when the configuration provides an invalid user
+	ErrInvalidUser = errors.New("invalid user")
+	// ErrInvalidPassword is returned when the configuration provides an invalid password
+	ErrInvalidPassword = errors.New("invalid password")
+	// ErrInvalidDatabase is returned when the configuration provides an invalid database
+	ErrInvalidDatabase = errors.New("invalid database")
+	// ErrInvalidSSLMode is returned when the configuration provides an invalid ssl mode
+	ErrInvalidSSLMode = errors.New("invalid ssl mode")
 )
 
 // PostgresDatabase represents a postgres connection
@@ -35,6 +43,7 @@ type PostgresConf struct {
 }
 
 func parsePostgresConfig() (PostgresConf, error) {
+	fmt.Println(os.Environ())
 	pc := PostgresConf{}
 
 	host := "localhost"
@@ -46,7 +55,7 @@ func parsePostgresConfig() (PostgresConf, error) {
 	if p := os.Getenv("POSTGRES_PORT"); p != "" {
 		cp, err := strconv.Atoi(p)
 		if err != nil {
-			return pc, errors.New("invalid port")
+			return pc, ErrInvalidPort
 		}
 		port = cp
 	}
@@ -55,28 +64,26 @@ func parsePostgresConfig() (PostgresConf, error) {
 	if u := os.Getenv("POSTGRES_USER"); u != "" {
 		user = u
 	} else {
-		return pc, ErrInvalidConf
+		return pc, ErrInvalidUser
 	}
 
 	var pwd string
 	if pw := os.Getenv("POSTGRES_PASSWORD"); pw != "" {
 		pwd = pw
 	} else {
-		return pc, ErrInvalidConf
+		return pc, ErrInvalidPassword
 	}
 
 	var dbname string
 	if dbn := os.Getenv("POSTGRES_DB"); dbn != "" {
 		dbname = dbn
 	} else {
-		return pc, ErrInvalidConf
+		return pc, ErrInvalidDatabase
 	}
 
 	var sslmode string = "disable"
 	if sslm := os.Getenv("POSTGRES_SSLMODE"); sslm == "enable" || sslm == "disable" {
 		sslmode = sslm
-	} else {
-		return pc, ErrInvalidConf
 	}
 
 	pc.host = host

@@ -14,7 +14,6 @@ build-linux:
 test:
 	$(GOTEST) -v ./...
 clean:
-	$(GOCLEAN)
 	rm -f $(BINARY_NAME)
 	rm -f $(BINARY_UNIX)
 build-docker: build-linux
