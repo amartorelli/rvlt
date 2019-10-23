@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -39,7 +41,59 @@ func TestGetBirthdayHandler(t *testing.T) {
 }
 
 func TestSetBirthdayHandler(t *testing.T) {
-	// TODO
+	// test valid request
+	rr := httptest.NewRecorder()
+	dobr := DOBRequest{DOB: "2017-04-23"}
+	dobrb, _ := json.Marshal(dobr)
+
+	req := httptest.NewRequest("PUT", "http://localhost:8080/hello/john", bytes.NewReader(dobrb))
+	req.Header.Set("Content-type", "application/json")
+	a.mux.ServeHTTP(rr, req)
+
+	resp := rr.Result()
+	if resp.StatusCode != http.StatusNoContent {
+		t.Error("setting the birthday for a valid user should return NoContent (204)")
+	}
+
+	// test invalid content type header
+	rr = httptest.NewRecorder()
+	dobr = DOBRequest{DOB: "2017-04-23"}
+	dobrb, _ = json.Marshal(dobr)
+
+	req = httptest.NewRequest("PUT", "http://localhost:8080/hello/john", bytes.NewReader(dobrb))
+	a.mux.ServeHTTP(rr, req)
+
+	resp = rr.Result()
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Error("a valid request with content type not set to application/json should give a MethodNotAllowed(405)")
+	}
+
+	// invalid json
+	rr = httptest.NewRecorder()
+
+	rs := "{\"date\"}"
+	req = httptest.NewRequest("PUT", "http://localhost:8080/hello/john", bytes.NewReader([]byte(rs)))
+	req.Header.Set("Content-type", "application/json")
+	a.mux.ServeHTTP(rr, req)
+
+	resp = rr.Result()
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Error("an invalid json request should return BadRequest (400)")
+	}
+
+	// invalid user
+	rr = httptest.NewRecorder()
+	dobr = DOBRequest{DOB: "2017-04-43"}
+	dobrb, _ = json.Marshal(dobr)
+
+	req = httptest.NewRequest("PUT", "http://localhost:8080/hello/john05", bytes.NewReader(dobrb))
+	req.Header.Set("Content-type", "application/json")
+	a.mux.ServeHTTP(rr, req)
+
+	resp = rr.Result()
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Error("an invalid user request should return BadRequest (400)")
+	}
 }
 
 func TestRenderBirthdayMessage(t *testing.T) {
