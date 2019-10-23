@@ -129,7 +129,7 @@ var (
 	queryUpdateUser = `UPDATE birthdays SET birthday = $1 WHERE username = '$2'`
 )
 
-// Store stores a user in memory
+// Store stores a user in postgres
 func (d *PostgresDatabase) Store(u model.User) error {
 	_, err := d.Get(u.Username)
 	// if the user is not present we insert
@@ -153,7 +153,7 @@ func (d *PostgresDatabase) Store(u model.User) error {
 	return nil
 }
 
-// Get retrieves a user's birthday from memory
+// Get retrieves a user's birthday from postgres
 func (d *PostgresDatabase) Get(user string) (u model.User, err error) {
 	usr := model.User{}
 
