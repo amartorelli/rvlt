@@ -141,6 +141,8 @@ func (d *PostgresDatabase) Stop() error {
 
 // Store stores a user in postgres
 func (d *PostgresDatabase) Store(u model.User) error {
+	opMetric.WithLabelValues("store-user").Inc()
+
 	ostart := time.Now()
 	defer opDuration.WithLabelValues("store-user").Observe(time.Since(ostart).Seconds())
 
@@ -172,13 +174,13 @@ func (d *PostgresDatabase) Store(u model.User) error {
 		return err
 	}
 
-	opMetric.WithLabelValues("store-user").Inc()
-
 	return nil
 }
 
 // Get retrieves a user's birthday from postgres
 func (d *PostgresDatabase) Get(user string) (u model.User, err error) {
+	opMetric.WithLabelValues("get-user").Inc()
+
 	ostart := time.Now()
 	defer opDuration.WithLabelValues("get-user").Observe(time.Since(ostart).Seconds())
 
@@ -202,8 +204,6 @@ func (d *PostgresDatabase) Get(user string) (u model.User, err error) {
 		return usr, err
 	}
 	usr.DOB = dob.Format("2006-01-02")
-
-	opMetric.WithLabelValues("get-user").Inc()
 
 	return usr, nil
 }

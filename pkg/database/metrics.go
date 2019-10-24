@@ -8,16 +8,16 @@ import (
 var (
 	opMetric = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "helloworld_database_operations_total",
-		Help: "Total number of HTTP requests",
+		Help: "Total number of database operations",
 	}, []string{"operation"})
 
 	opErrMetric = promauto.NewCounterVec(prometheus.CounterOpts{
 		Name: "helloworld_database_operations_errors_total",
-		Help: "Total number of HTTP requests",
+		Help: "Total number of database operation errors",
 	}, []string{"operation"})
 
 	opDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
 		Name: "helloworld_database_operations_duration_seconds",
-		Help: "Duration of the HTTP requests",
+		Help: "Duration of the database operations",
 	}, []string{"operation"})
 )

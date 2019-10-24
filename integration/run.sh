@@ -1,7 +1,5 @@
 #!/bin/bash
 
-docker-compose -f ./integration/docker-compose.yml up -d  --force-recreate
-
 echo "# USER NOT FOUND"
 curl http://localhost:8080/hello/john
 
@@ -31,5 +29,3 @@ curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' 
 
 echo "# BIRTHDAY IS TODAY"
 curl http://localhost:8080/hello/john
-
-docker-compose -f ./integration/docker-compose.yml down
