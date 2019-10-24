@@ -127,7 +127,7 @@ POSTGRES_HOST=postgres POSTGRES_PORT=5432 POSTGRES_USER=helloworld POSTGRES_PASS
 If using the postgres database, its configuration is set using the following environment variables:
 
 * `POSTGRES_HOST`: the address of the database (defaults to localhost)
-* `POSTGRES_PORT`: the port to be used (defaults to 5432)
+* `POSTGRES_PORT`: the port to be used (defaults to `5432`)
 * `POSTGRES_USER`: the user to connect to the database
 * `POSTGRES_PASSWORD`: the password to use
 * `POSTGRES_DB`: the database name
@@ -150,6 +150,34 @@ The health of the application is provided by the `/health` endpoint and it can b
 Example of usage using `curl`:
 
 ```bash
-curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2016-02-02"}'
+# USER NOT FOUND
 curl http://localhost:8080/hello/john
+{"message":""}
+
+# ADD USER
+curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2016-02-02"}'
+
+curl http://localhost:8080/hello/john
+{"message":"Hello, john! Your birthday is in 101 day(s)"}
+
+# UPDATE USER
+curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2018-10-26"}'
+
+# BIRTHDAY IS IN 2 DAYS
+curl http://localhost:8080/hello/john
+{"message":"Hello, john! Your birthday is in 2 day(s)"}
+
+# UPDATE USER
+curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2018-10-23"}'
+
+# BIRTHDAY WAS YESTERDAY (in 364 days)
+curl http://localhost:8080/hello/john
+{"message":"Hello, john! Your birthday is in 364 day(s)"}
+
+# SETTING TODAY AS BIRTHDAY
+curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "2018-10-24"}'
+
+# BIRTHDAY IS TODAY
+curl http://localhost:8080/hello/john
+{"message":"Hello, john! Happy birthday!"}
 ```
