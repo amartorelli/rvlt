@@ -55,6 +55,7 @@ func NewHelloWorldAPI(addr string, db database.Database) (*HelloWorldAPI, error)
 }
 
 func (a *HelloWorldAPI) initHandlers() {
+	a.mux.Handle("/health", http.HandlerFunc(a.healthHandler)).Methods("GET")
 	a.mux.Handle("/metrics", promhttp.Handler())
 	a.mux.Handle("/hello/{username}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(a.getBirthdayHandler))).Methods("GET")
 	a.mux.Handle("/hello/{username}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(a.setBirthdayHandler))).Methods("PUT").HeadersRegexp("Content-Type", "application/json")
@@ -85,6 +86,10 @@ func (a *HelloWorldAPI) Stop() error {
 	}
 
 	return nil
+}
+
+func (a *HelloWorldAPI) healthHandler(w http.ResponseWriter, req *http.Request) {
+
 }
 
 func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Request) {

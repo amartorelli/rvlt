@@ -29,7 +29,7 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources: {}
+resources:
   limits:
    cpu: 100m
    memory: 128Mi
@@ -42,3 +42,8 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+hpa:
+  target: 50
+  minReplicas: 3
+  maxReplicas: 10
