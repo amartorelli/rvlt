@@ -13,14 +13,14 @@ echo "# UPDATE USER"
 BIRTHDAY=$(date -v -1y -v +2d +%Y-%m-%d)
 curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "'$BIRTHDAY'"}'
 
-echo "# NEW BIRTHDAY IN 2 DAYS"
+echo "# BIRTHDAY IS IN 2 DAYS"
 curl http://localhost:8080/hello/john
 
 echo "# UPDATE USER"
 BIRTHDAY=$(date -v -1y -v -1d +%Y-%m-%d)
 curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' -d '{"dateOfBirth": "'$BIRTHDAY'"}'
 
-echo "# NEW BIRTHDAY YESTERDAY DAYS (in 364 days)"
+echo "# BIRTHDAY WAS YESTERDAY (in 364 days)"
 curl http://localhost:8080/hello/john
 
 echo "# SETTING TODAY AS BIRTHDAY"

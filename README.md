@@ -68,6 +68,17 @@ Once finished the environment can be torn down using:
 make env-down
 ```
 
+All Makefile actions:
+
+* build: builds for the current platform
+* build-linux: builds for linux
+* test: runs unit tests
+* integration-tests: runs integration tests by spinning up a local environment. These tests don't actually check nor fail (to keep it simple) but could be changed to do so
+* clean: removes artifacts
+* build-docker: builds for linux and uses the binary to create a new docker image, then cleans up
+* env-up: brings up a local environment with Helloworld API and Postgres
+* env-down: tears down the local environment
+
 ### Deploy to the cloud
 
 In order to deploy to the cloud the steps are very similar to the ones for the local deployment, but running the build commands would be performed by some CI/CD, like Jenkins. Once Jenkins builds the image successfully it'll push it to Google Container Registry (GCR). Changes to the Helm charts should also be pushed to a GCS bucket that can be used to fetch charts when deploying using Helm.
