@@ -141,8 +141,12 @@ func (d *PostgresDatabase) Stop() error {
 
 // Store stores a user in postgres
 func (d *PostgresDatabase) Store(u model.User) error {
+	ostart := time.Now()
+	defer opDuration.WithLabelValues("store-user").Observe(time.Since(ostart).Seconds())
+
 	dob, err := time.Parse("2006-01-02", u.DOB)
 	if err != nil {
+		opErrMetric.WithLabelValues("store-user").Inc()
 		return err
 	}
 	_, err = d.Get(u.Username)
@@ -150,10 +154,13 @@ func (d *PostgresDatabase) Store(u model.User) error {
 	if err == ErrUserNotFound {
 		_, err := d.db.Query(queryInsertUser, u.Username, dob)
 		if err != nil {
+			opErrMetric.WithLabelValues("store-user").Inc()
 			return err
 		}
+		opMetric.WithLabelValues("store-user").Inc()
 		return nil
 	} else if err != nil {
+		opErrMetric.WithLabelValues("store-user").Inc()
 		return err
 	}
 
@@ -161,31 +168,42 @@ func (d *PostgresDatabase) Store(u model.User) error {
 	stmt, err := d.db.Prepare(queryUpdateUser)
 	_, err = stmt.Exec(dob, u.Username)
 	if err != nil {
+		opErrMetric.WithLabelValues("store-user").Inc()
 		return err
 	}
+
+	opMetric.WithLabelValues("store-user").Inc()
 
 	return nil
 }
 
 // Get retrieves a user's birthday from postgres
 func (d *PostgresDatabase) Get(user string) (u model.User, err error) {
+	ostart := time.Now()
+	defer opDuration.WithLabelValues("get-user").Observe(time.Since(ostart).Seconds())
+
 	usr := model.User{}
 
 	rows, err := d.db.Query(querySelectUser, user)
 	if err != nil {
+		opErrMetric.WithLabelValues("get-user").Inc()
 		return usr, err
 	}
 
 	if !rows.Next() {
+		opErrMetric.WithLabelValues("get-user").Inc()
 		return usr, ErrUserNotFound
 	}
 
 	var dob time.Time
 	err = rows.Scan(&usr.Username, &dob)
 	if err != nil {
+		opErrMetric.WithLabelValues("get-user").Inc()
 		return usr, err
 	}
 	usr.DOB = dob.Format("2006-01-02")
+
+	opMetric.WithLabelValues("get-user").Inc()
 
 	return usr, nil
 }
