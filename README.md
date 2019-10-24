@@ -45,7 +45,7 @@ The Helm chart provided simply allows to deploy the application to a Kubernetes 
 
 ## Build and deployment
 
-### Local build and deployment
+### Local build and deployment
 
 The Makefile allows to perfom most of the required actions. To build locally run `make build` and it'll automatically build the binary in the current directory which can be used to run the application.
 
@@ -105,7 +105,8 @@ This endpoint accepts a json payload only, make sure to set the `Content-type` h
 
 ## Configuration and running the application
 
-### Configuration
+### Configuration
+
 
 ```bash
 ./helloworld -h
@@ -118,7 +119,7 @@ Usage of ./helloworld:
         log level (debug/info/warn/fatal) (default "info")
 ```
 
-### Running
+### Running
 
 ```bash
 POSTGRES_HOST=postgres POSTGRES_PORT=5432 POSTGRES_USER=helloworld POSTGRES_PASSWORD=password POSTGRES_DB=helloworld ./helloworld -db=postgres
