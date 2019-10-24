@@ -6,4 +6,4 @@ helm upgrade -i -f values.yaml rvlt-charts/helloworld --version $HELLOWORLD_VER 
 
 # Automatic roll back if 5xx are returned
 
-helm monitor prometheus --prometheus=http://prometheus helloworld 'rate(helloworld_http_requests_total{code=~"^5.*$"}[5m]) > 0'
+helm monitor prometheus --prometheus=http://prometheus.rvlt.com helloworld 'rate(helloworld_http_requests_total{code=~"^5.*$"}[5m]) > 0'
