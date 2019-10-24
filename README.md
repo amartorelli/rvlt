@@ -70,14 +70,14 @@ make env-down
 
 All Makefile actions:
 
-* build: builds for the current platform
-* build-linux: builds for linux
-* test: runs unit tests
-* integration-tests: runs integration tests by spinning up a local environment. These tests don't actually check nor fail (to keep it simple) but could be changed to do so
-* clean: removes artifacts
-* build-docker: builds for linux and uses the binary to create a new docker image, then cleans up
-* env-up: brings up a local environment with Helloworld API and Postgres
-* env-down: tears down the local environment
+* `build`: builds for the current platform
+* `build-linux`: builds for linux
+* `test`: runs unit tests
+* `integration-tests`: runs integration tests by spinning up a local environment. These tests don't actually check nor fail (to keep it simple) but could be changed to do so
+* `clean`: removes artifacts
+* `build-docker`: builds for linux and uses the binary to create a new docker image, then cleans up
+* `env-up`: brings up a local environment with Helloworld API and Postgres
+* `env-down`: tears down the local environment
 
 ### Deploy to the cloud
 
@@ -91,22 +91,21 @@ In case canary is required, the deployment strategy would need to be changed to 
 
 `*GET* /hello/<username>`
 
-* 200 if the user could be found and is returned
-* 404 if the user could not be found
-* 500 if there was an internal error
+* `200` if the user could be found and is returned
+* `404` if the user could not be found
+* `500` if there was an internal error
 
 `*PUT* /hello/<username>`
 
 This endpoint accepts a json payload only, make sure to set the `Content-type` header to `application/json`.
 
-* 204 if the user could be found and is returned
-* 404 if the payload wasn't json or if the username or date of birth don't follow the respective format rules
-* 500 if there was an internal error while storing the data into the database
+* `204` if the user could be found and is returned
+* `404` if the payload wasn't json or if the username or date of birth don't follow the respective format rules
+* `500` if there was an internal error while storing the data into the database
 
 ## Configuration and running the application
 
 ### Configuration
-
 
 ```bash
 ./helloworld -h
@@ -127,22 +126,22 @@ POSTGRES_HOST=postgres POSTGRES_PORT=5432 POSTGRES_USER=helloworld POSTGRES_PASS
 
 If using the postgres database, its configuration is set using the following environment variables:
 
-* POSTGRES_HOST: the address of the database (defaults to localhost)
-* POSTGRES_PORT: the port to be used (defaults to 5432)
-* POSTGRES_USER: the user to connect to the database
-* POSTGRES_PASSWORD: the password to use
-* POSTGRES_DB: the database name
-* POSTGRES_SSLMODE: if sslmode is enabled (defaults to `disable`)
+* `POSTGRES_HOST`: the address of the database (defaults to localhost)
+* `POSTGRES_PORT`: the port to be used (defaults to 5432)
+* `POSTGRES_USER`: the user to connect to the database
+* `POSTGRES_PASSWORD`: the password to use
+* `POSTGRES_DB`: the database name
+* `POSTGRES_SSLMODE`: if sslmode is enabled (defaults to `disable`)
 
 ## Monitoring and health
 
 The application exposes some fundamental metrics useful to understand if the `helloworld` is working correctly. These metrics cover the API usage and the communication with the database and can be scraped by Prometheus. Metrics are exposed on the `/metrics` endpoint.
 
-* helloworld_http_requests_total: total number of HTTP requests by endpoint and status code
-* helloworld_http_request_duration_seconds: duration of the HTTP requests by endpoint
-* helloworld_database_operations_total: total number of database operations (including errors) by operation
-* helloworld_database_operations_errors_total: total number of database operations errors by operation
-* helloworld_database_operations_duration_seconds: duration of the database operations by operation
+* `helloworld_http_requests_total`: total number of HTTP requests by endpoint and status code
+* `helloworld_http_request_duration_seconds`: duration of the HTTP requests by endpoint
+* `helloworld_database_operations_total`: total number of database operations (including errors) by operation
+* `helloworld_database_operations_errors_total`: total number of database operations errors by operation
+* `helloworld_database_operations_duration_seconds`: duration of the database operations by operation
 
 The health of the application is provided by the `/health` endpoint and it can be used by Kubernetes to understand if it needs to restart the pod (liveness probe) and if it can route traffic to it (readiness probe).
 
