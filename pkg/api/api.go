@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/amartorelli/rvlt/pkg/database"
@@ -14,6 +15,7 @@ import (
 	"github.com/amartorelli/rvlt/pkg/utils"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -53,6 +55,7 @@ func NewHelloWorldAPI(addr string, db database.Database) (*HelloWorldAPI, error)
 }
 
 func (a *HelloWorldAPI) initHandlers() {
+	a.mux.Handle("/metrics", promhttp.Handler())
 	a.mux.Handle("/hello/{username}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(a.getBirthdayHandler))).Methods("GET")
 	a.mux.Handle("/hello/{username}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(a.setBirthdayHandler))).Methods("PUT").HeadersRegexp("Content-Type", "application/json")
 }
@@ -85,6 +88,9 @@ func (a *HelloWorldAPI) Stop() error {
 }
 
 func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Request) {
+	hstart := time.Now()
+	defer reqDuration.WithLabelValues("get-birthday").Observe(time.Since(hstart).Seconds())
+
 	w.Header().Set("Content-type", "application/json")
 	var r DOBResponse
 	vars := mux.Vars(req)
@@ -92,11 +98,13 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	u, err := a.db.Get(vars["username"])
 	if err == database.ErrUserNotFound {
 		log.Error(err)
+		reqMetric.WithLabelValues("get-birthday", strconv.Itoa(http.StatusNotFound)).Inc()
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(r)
 		return
 	} else if err != nil {
 		log.Error(err)
+		reqMetric.WithLabelValues("get-birthday", strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(r)
 		return
@@ -105,17 +113,22 @@ func (a *HelloWorldAPI) getBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	msg, err := renderBirthdayMessage(u, time.Now())
 	if err != nil {
 		log.Error(err)
+		reqMetric.WithLabelValues("get-birthday", strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(r)
 		return
 	}
 
 	r.Message = msg
+	reqMetric.WithLabelValues("get-birthday", strconv.Itoa(http.StatusOK)).Inc()
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(r)
 }
 
 func (a *HelloWorldAPI) setBirthdayHandler(w http.ResponseWriter, req *http.Request) {
+	hstart := time.Now()
+	defer reqDuration.WithLabelValues("set-birthday").Observe(time.Since(hstart).Seconds())
+
 	vars := mux.Vars(req)
 	var r DOBRequest
 
@@ -123,6 +136,7 @@ func (a *HelloWorldAPI) setBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	err := json.NewDecoder(req.Body).Decode(&r)
 	if err != nil {
 		log.Error(err)
+		reqMetric.WithLabelValues("set-birthday", strconv.Itoa(http.StatusBadRequest)).Inc()
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -133,6 +147,7 @@ func (a *HelloWorldAPI) setBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	v, err := u.IsValid()
 	if !v {
 		log.Error(err)
+		reqMetric.WithLabelValues("set-birthday", strconv.Itoa(http.StatusBadRequest)).Inc()
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -140,10 +155,12 @@ func (a *HelloWorldAPI) setBirthdayHandler(w http.ResponseWriter, req *http.Requ
 	err = a.db.Store(u)
 	if err != nil {
 		log.Error(err)
+		reqMetric.WithLabelValues("set-birthday", strconv.Itoa(http.StatusInternalServerError)).Inc()
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	reqMetric.WithLabelValues("set-birthday", strconv.Itoa(http.StatusNoContent)).Inc()
 	w.WriteHeader(http.StatusNoContent)
 }
 
