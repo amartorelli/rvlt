@@ -1,22 +1,22 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ include "rvlt.fullname" . }}
+  name: {{ include "helloworld.fullname" . }}
   labels:
-    app: {{ include "rvlt.name" . }}
-    chart: {{ include "rvlt.chart" . }}
+    app: {{ include "helloworld.name" . }}
+    chart: {{ include "helloworld.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "rvlt.name" . }}
+      app: {{ include "helloworld.name" . }}
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ include "rvlt.name" . }}
+        app: {{ include "helloworld.name" . }}
         release: {{ .Release.Name }}
     spec:
       containers:

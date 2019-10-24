@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "rvlt.fullname" . }}
+  name: {{ include "helloworld.fullname" . }}
   labels:
-    app: {{ include "rvlt.name" . }}
-    chart: {{ include "rvlt.chart" . }}
+    app: {{ include "helloworld.name" . }}
+    chart: {{ include "helloworld.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
@@ -15,5 +15,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: {{ include "rvlt.name" . }}
+    app: {{ include "helloworld.name" . }}
     release: {{ .Release.Name }}
