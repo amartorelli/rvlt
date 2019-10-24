@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/amartorelli/rvlt/pkg/model"
+	log "github.com/sirupsen/logrus"
+
 	// used to psql
 	_ "github.com/lib/pq"
 )
@@ -24,6 +26,12 @@ var (
 	ErrInvalidDatabase = errors.New("invalid database")
 	// ErrInvalidSSLMode is returned when the configuration provides an invalid ssl mode
 	ErrInvalidSSLMode = errors.New("invalid ssl mode")
+)
+
+var (
+	querySelectUser = "SELECT * FROM birthdays WHERE username = $1"
+	queryInsertUser = "INSERT INTO birthdays(username, birthday) VALUES($1, $2)"
+	queryUpdateUser = "UPDATE birthdays SET birthday = $1 WHERE username = $2"
 )
 
 // PostgresDatabase represents a postgres connection
@@ -121,7 +129,7 @@ func NewPostgresDatabase() (*PostgresDatabase, error) {
 
 	pdb.db = db
 
-	fmt.Println("Successfully connected!")
+	log.Info("db connection initialised")
 	return pdb, nil
 }
 
@@ -130,12 +138,6 @@ func (d *PostgresDatabase) Stop() error {
 	err := d.db.Close()
 	return err
 }
-
-var (
-	querySelectUser = "SELECT * FROM birthdays WHERE username = $1"
-	queryInsertUser = "INSERT INTO birthdays(username, birthday) VALUES($1, $2)"
-	queryUpdateUser = "UPDATE birthdays SET birthday = $1 WHERE username = $2"
-)
 
 // Store stores a user in postgres
 func (d *PostgresDatabase) Store(u model.User) error {

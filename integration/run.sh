@@ -32,4 +32,4 @@ curl -XPUT http://localhost:8080/hello/john -H 'Content-type: application/json' 
 echo "# BIRTHDAY IS TODAY"
 curl http://localhost:8080/hello/john
 
-docker-compose -f ./integration/docker-compose.yml down
+# docker-compose -f ./integration/docker-compose.yml down

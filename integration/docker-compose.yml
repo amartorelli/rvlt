@@ -12,7 +12,7 @@ services:
     volumes:
       - ./initdb.sh:/docker-entrypoint-initdb.d/initdb.sh
   helloworld:
-    image: "rvlt/helloworld:latest"
+    image: "gcr.io/rvlt/helloworld:latest"
     container_name: "rvlt-helloworld"
     command: "/helloworld -db=postgres"
     environment:

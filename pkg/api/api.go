@@ -6,11 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/amartorelli/rvlt/pkg/database"
 	"github.com/amartorelli/rvlt/pkg/model"
 	"github.com/amartorelli/rvlt/pkg/utils"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
@@ -51,8 +53,8 @@ func NewHelloWorldAPI(addr string, db database.Database) (*HelloWorldAPI, error)
 }
 
 func (a *HelloWorldAPI) initHandlers() {
-	a.mux.HandleFunc("/hello/{username}", a.getBirthdayHandler).Methods("GET")
-	a.mux.HandleFunc("/hello/{username}", a.setBirthdayHandler).Methods("PUT").HeadersRegexp("Content-Type", "application/json")
+	a.mux.Handle("/hello/{username}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(a.getBirthdayHandler))).Methods("GET")
+	a.mux.Handle("/hello/{username}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(a.setBirthdayHandler))).Methods("PUT").HeadersRegexp("Content-Type", "application/json")
 }
 
 // Start starts the http server
@@ -163,8 +165,6 @@ func renderBirthdayMessage(u model.User, now time.Time) (string, error) {
 		return "", err
 	}
 
-	fmt.Printf("%+v/%+v\n", bd, now)
-	fmt.Println(days)
 	if days == 0 {
 		msg = fmt.Sprintf("Hello, %s! Happy birthday!", u.Username)
 	} else {
