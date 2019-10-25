@@ -29,6 +29,13 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
+postgres:
+  host: "localhost"
+  port: "5432"
+  db: "helloworld"
+  # name of the secret for user/password
+  credentials: "postgres-credentials"
+
 resources:
   limits:
    cpu: 100m
