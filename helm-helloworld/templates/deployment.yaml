@@ -23,7 +23,7 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          command: ["/helloworld" "-db" "postgres"]
+          command: ["/helloworld", "-db", "postgres"]
           env:
             - name: POSTGRES_HOST
               value: {{ .Values.postgres.host }}
