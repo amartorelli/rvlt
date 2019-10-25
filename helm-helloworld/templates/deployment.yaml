@@ -23,6 +23,24 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/helloworld" "-db" "postgres"]
+          env:
+            - name: POSTGRES_HOST
+              value: {{ .Values.postgres.host }}
+            - name: POSTGRES_PORT
+              value: {{ .Values.postgres.port }}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.credentials }}
+                  key: user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgres.credentials }}
+                  key: password
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.db }}
           ports:
             - name: http
               containerPort: 8080
